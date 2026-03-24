@@ -12,8 +12,7 @@
 
 // Debuging Macro
 namespace {
-template<typename Type>
-constexpr Type check_error(Type result, const char* expression_name, const char* file_name, int line) {
+template <typename Type> constexpr Type check_error(Type result, const char *expression_name, const char *file_name, int line) {
     if(!result) {
         std::cerr << "'" << expression_name << "' failed in file \"" << file_name << "\" at line " << line << ": " << SDL_GetError() << std::endl;
     }
@@ -49,10 +48,10 @@ struct FragmentUniforms {
 };
 
 struct State {
-    SDL_Window* window;
-    SDL_GPUDevice* device;
-    SDL_GPUGraphicsPipeline* graphics_pipeline;
-    SDL_GPUBuffer* vertex_buffer;
+    SDL_Window *window;
+    SDL_GPUDevice *device;
+    SDL_GPUGraphicsPipeline *graphics_pipeline;
+    SDL_GPUBuffer *vertex_buffer;
 
     glm::vec2 angles;
 };
@@ -114,12 +113,12 @@ constexpr glm::vec3 SPECULAR_COLOR = 3.0f * glm::vec3(1.f, 1.f, 1.f);
 constexpr float SPECULAR_EXPONENT = 30.f;
 constexpr glm::vec3 LIGHT_DIRECTION = glm::vec3(1.f, 3.f, 2.f);
 
-SDL_AppResult SDL_AppInit(void** app_state, int argc, char* argv[]) {
+SDL_AppResult SDL_AppInit(void **app_state, int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
 
-    State* state = new State();
+    State *state = new State();
 
-    *app_state = static_cast<void*>(state);
+    *app_state = static_cast<void *>(state);
 
     state->window = CHECK_ERROR(SDL_CreateWindow("GPU Example", WINDOW_SIZE.x, WINDOW_SIZE.y, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN));
     state->device = CHECK_ERROR(SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, nullptr));
@@ -130,11 +129,11 @@ SDL_AppResult SDL_AppInit(void** app_state, int argc, char* argv[]) {
 
         // Load Vertex Shader
         size_t vertex_code_size;
-        void* vertex_code = CHECK_ERROR(SDL_LoadFile("phong.vert.spv", &vertex_code_size));
+        void *vertex_code = CHECK_ERROR(SDL_LoadFile("phong.vert.spv", &vertex_code_size));
 
         SDL_GPUShaderCreateInfo vertex_info{
             .code_size = vertex_code_size,
-            .code = static_cast<std::uint8_t*>(vertex_code),
+            .code = static_cast<std::uint8_t *>(vertex_code),
             .entrypoint = "main",
             .format = SDL_GPU_SHADERFORMAT_SPIRV,
             .stage = SDL_GPU_SHADERSTAGE_VERTEX,
@@ -144,17 +143,17 @@ SDL_AppResult SDL_AppInit(void** app_state, int argc, char* argv[]) {
             .num_uniform_buffers = 1,
         };
 
-        SDL_GPUShader* gpu_vertex_shader = CHECK_ERROR(SDL_CreateGPUShader(state->device, &vertex_info));
+        SDL_GPUShader *gpu_vertex_shader = CHECK_ERROR(SDL_CreateGPUShader(state->device, &vertex_info));
 
         SDL_free(vertex_code);
 
         // Load Fragment Shader
         size_t fragment_code_size;
-        void* fragment_code = CHECK_ERROR(SDL_LoadFile("phong.frag.spv", &fragment_code_size));
+        void *fragment_code = CHECK_ERROR(SDL_LoadFile("phong.frag.spv", &fragment_code_size));
 
-        SDL_GPUShaderCreateInfo fragment_info{
+        const SDL_GPUShaderCreateInfo fragment_info{
             .code_size = fragment_code_size,
-            .code = static_cast<std::uint8_t*>(fragment_code),
+            .code = static_cast<std::uint8_t *>(fragment_code),
             .entrypoint = "main",
             .format = SDL_GPU_SHADERFORMAT_SPIRV,
             .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
@@ -164,19 +163,17 @@ SDL_AppResult SDL_AppInit(void** app_state, int argc, char* argv[]) {
             .num_uniform_buffers = 1,
         };
 
-        SDL_GPUShader* gpu_fragment_shader = CHECK_ERROR(SDL_CreateGPUShader(state->device, &fragment_info));
+        SDL_GPUShader *gpu_fragment_shader = CHECK_ERROR(SDL_CreateGPUShader(state->device, &fragment_info));
 
         SDL_free(fragment_code);
 
         // Configure Graphics Pipeline
-        std::vector<SDL_GPUVertexBufferDescription> vertex_buffer_desctiptions{
-            SDL_GPUVertexBufferDescription{
-                .slot = 0,
-                .pitch = sizeof(Vertex),
-                .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-                .instance_step_rate = 0,
-            }
-        };
+        std::vector<SDL_GPUVertexBufferDescription> vertex_buffer_desctiptions{SDL_GPUVertexBufferDescription{
+            .slot = 0,
+            .pitch = sizeof(Vertex),
+            .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+            .instance_step_rate = 0,
+        }};
 
         std::vector<SDL_GPUVertexAttribute> vertex_attributes{
             SDL_GPUVertexAttribute{
@@ -210,7 +207,7 @@ SDL_AppResult SDL_AppInit(void** app_state, int argc, char* argv[]) {
             },
         };
 
-        SDL_GPUGraphicsPipelineCreateInfo graphics_pipeline_create_info{
+        const SDL_GPUGraphicsPipelineCreateInfo graphics_pipeline_create_info{
             .vertex_shader = gpu_vertex_shader,
             .fragment_shader = gpu_fragment_shader,
             .vertex_input_state{
@@ -239,7 +236,7 @@ SDL_AppResult SDL_AppInit(void** app_state, int argc, char* argv[]) {
 
     { // Create Vertex Buffer
 
-        SDL_GPUBufferCreateInfo buffer_create_info{
+        const SDL_GPUBufferCreateInfo buffer_create_info{
             .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
             .size = static_cast<Uint32>(VERTICES.size() * sizeof(Vertex)),
         };
@@ -252,16 +249,16 @@ SDL_AppResult SDL_AppInit(void** app_state, int argc, char* argv[]) {
             .size = static_cast<Uint32>(VERTICES.size() * sizeof(Vertex)),
         };
 
-        SDL_GPUTransferBuffer* transfer_buffer = CHECK_ERROR(SDL_CreateGPUTransferBuffer(state->device, &transfer_info));
+        SDL_GPUTransferBuffer *transfer_buffer = CHECK_ERROR(SDL_CreateGPUTransferBuffer(state->device, &transfer_info));
 
-        void* transfer_data = CHECK_ERROR(SDL_MapGPUTransferBuffer(state->device, transfer_buffer, false));
+        void *transfer_data = CHECK_ERROR(SDL_MapGPUTransferBuffer(state->device, transfer_buffer, false));
         SDL_memcpy(transfer_data, VERTICES.data(), static_cast<Uint32>(VERTICES.size() * sizeof(Vertex)));
         SDL_UnmapGPUTransferBuffer(state->device, transfer_buffer);
 
-        SDL_GPUCommandBuffer* command_buffer = CHECK_ERROR(SDL_AcquireGPUCommandBuffer(state->device));
-        SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer);
+        SDL_GPUCommandBuffer *command_buffer = CHECK_ERROR(SDL_AcquireGPUCommandBuffer(state->device));
+        SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
 
-        SDL_GPUTransferBufferLocation location{
+        const SDL_GPUTransferBufferLocation location{
             .transfer_buffer = transfer_buffer,
             .offset = 0,
         };
@@ -284,40 +281,43 @@ SDL_AppResult SDL_AppInit(void** app_state, int argc, char* argv[]) {
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppEvent(void* app_state, SDL_Event* event) {
-    State* const state = static_cast<State*>(app_state);
+SDL_AppResult SDL_AppEvent(void *app_state, SDL_Event *event) {
+    State *const state = static_cast<State *>(app_state);
 
     switch(event->type) {
-    case SDL_EVENT_QUIT: {
-        return SDL_APP_SUCCESS;
-    }
-    case SDL_EVENT_MOUSE_MOTION: {
-        if((event->motion.state & SDL_BUTTON_LMASK) != 0) {
-            int window_size_y;
-
-            CHECK_ERROR(SDL_GetWindowSize(state->window, nullptr, &window_size_y));
-
-            auto delta = glm::vec2(event->motion.xrel, event->motion.yrel) / static_cast<float>(window_size_y) * glm::pi<float>();
-
-            state->angles.x = glm::mod(state->angles.x + delta.x, 2.f * glm::pi<float>());
-            state->angles.y = glm::clamp(state->angles.y + delta.y, -0.5f * glm::pi<float>(), 0.5f * glm::pi<float>());
-
-            std::cout << "Camera angles set to: (" << state->angles.x << ", " << state->angles.y << ")" << std::endl;
+    case SDL_EVENT_QUIT:
+        {
+            return SDL_APP_SUCCESS;
         }
-        return SDL_APP_CONTINUE;
-    }
-    default: {
-        return SDL_APP_CONTINUE;
-    }
+    case SDL_EVENT_MOUSE_MOTION:
+        {
+            if((event->motion.state & SDL_BUTTON_LMASK) != 0) {
+                int window_size_y;
+
+                CHECK_ERROR(SDL_GetWindowSize(state->window, nullptr, &window_size_y));
+
+                auto delta = glm::vec2(event->motion.xrel, event->motion.yrel) / static_cast<float>(window_size_y) * glm::pi<float>();
+
+                state->angles.x = glm::mod(state->angles.x + delta.x, 2.f * glm::pi<float>());
+                state->angles.y = glm::clamp(state->angles.y + delta.y, -0.5f * glm::pi<float>(), 0.5f * glm::pi<float>());
+
+                std::cout << "Camera angles set to: (" << state->angles.x << ", " << state->angles.y << ")" << std::endl;
+            }
+            return SDL_APP_CONTINUE;
+        }
+    default:
+        {
+            return SDL_APP_CONTINUE;
+        }
     }
 }
 
-SDL_AppResult SDL_AppIterate(void* app_state) {
-    State* const state = static_cast<State*>(app_state);
+SDL_AppResult SDL_AppIterate(void *app_state) {
+    State *const state = static_cast<State *>(app_state);
 
-    SDL_GPUCommandBuffer* command_buffer = CHECK_ERROR(SDL_AcquireGPUCommandBuffer(state->device));
+    SDL_GPUCommandBuffer *command_buffer = CHECK_ERROR(SDL_AcquireGPUCommandBuffer(state->device));
 
-    SDL_GPUTexture* swapchain_texture;
+    SDL_GPUTexture *swapchain_texture;
     glm::uvec2 size;
 
     CHECK_ERROR(SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer, state->window, &swapchain_texture, &size.x, &size.y));
@@ -331,7 +331,7 @@ SDL_AppResult SDL_AppIterate(void* app_state) {
                 .store_op = SDL_GPU_STOREOP_STORE,
             },
         };
-        SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(command_buffer, targets.data(), targets.size(), nullptr);
+        SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(command_buffer, targets.data(), targets.size(), nullptr);
 
         SDL_BindGPUGraphicsPipeline(pass, state->graphics_pipeline);
 
@@ -357,7 +357,7 @@ SDL_AppResult SDL_AppIterate(void* app_state) {
         SDL_PushGPUVertexUniformData(command_buffer, 0, &vertex_uniforms, sizeof(VertexUniforms));
 
         // Setup Fragment Uniforms
-        glm::vec4 light_direction_affine = world_camera * glm::vec4(LIGHT_DIRECTION, 0.f);
+        const glm::vec4 light_direction_affine = world_camera * glm::vec4(LIGHT_DIRECTION, 0.f);
 
         FragmentUniforms fragment_uniforms{
             .diffuse_color = DIFFUSE_COLOR,
@@ -370,12 +370,10 @@ SDL_AppResult SDL_AppIterate(void* app_state) {
         SDL_PushGPUFragmentUniformData(command_buffer, 0, &fragment_uniforms, sizeof(FragmentUniforms));
 
         // Render Image
-        std::array<SDL_GPUBufferBinding, 1> buffer_bindings{
-            SDL_GPUBufferBinding{
-                .buffer = state->vertex_buffer,
-                .offset = 0,
-            }
-        };
+        std::array<SDL_GPUBufferBinding, 1> buffer_bindings{SDL_GPUBufferBinding{
+            .buffer = state->vertex_buffer,
+            .offset = 0,
+        }};
 
         SDL_BindGPUVertexBuffers(pass, 0, buffer_bindings.data(), buffer_bindings.size());
 
@@ -389,8 +387,8 @@ SDL_AppResult SDL_AppIterate(void* app_state) {
     return SDL_APP_CONTINUE;
 }
 
-void SDL_AppQuit(void* app_state, SDL_AppResult result) {
-    State* const state = static_cast<State*>(app_state);
+void SDL_AppQuit(void *app_state, SDL_AppResult /*result*/) {
+    const State *const state = static_cast<State *>(app_state);
 
     SDL_ReleaseGPUBuffer(state->device, state->vertex_buffer);
     SDL_ReleaseGPUGraphicsPipeline(state->device, state->graphics_pipeline);
