@@ -1,0 +1,19 @@
+---
+BasedOnStyle: Google
+
+AccessModifierOffset: -4
+IndentWidth: 4
+ColumnLimit: 0
+
+PointerAlignment: Left
+
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+BinPackArguments: true
+AllowAllArgumentsOnNextLine: false
+BinPackParameters: false
+AllowAllParametersOfDeclarationOnNextLine: false
+
+AlignAfterOpenBracket: BlockIndent
